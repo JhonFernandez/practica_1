@@ -1,5 +1,13 @@
 package edu.pucmm.pratica1;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -8,18 +16,27 @@ import org.jsoup.select.Elements;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Scanner;
+import java.util.*;
+
+import static spark.Spark.post;
 
 /**
  * Created by Jhon on 25/5/2017.
  */
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         Document doc = null;
         boolean urlValida= false;
         String url = "";
         BufferedReader lector = new BufferedReader(new InputStreamReader(System.in));
+
+        post("/practica1", (req, res) -> {
+            String texto = "Asignatura: "+req.queryParams("asignatura");
+            System.out.println(texto);
+            return texto;
+        });
+
         do {
 
             System.out.println("Digite una URL valida: ");
@@ -68,6 +85,21 @@ public class Main {
             System.out.println(forms.select("input"));
         }
 
+//        F) Para cada formulario “parseado”, identificar que el método de envío
+//        del formulario sea por utilizando el método POST y enviar una
+//        petición al servidor, con el parámetro llamado asignatura y valor
+//        practica1 y mostrar la respuesta por la salida estandar
+
+        forms = doc.select("form[method=post]");
+        for (Element form: forms) {
+            CloseableHttpClient httpclient = HttpClients.createDefault();
+
+            HttpPost httpPost = new HttpPost("http://localhost:4567/practica1");
+            List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+            nvps.add(new BasicNameValuePair("asignatura", "practica1"));
+            httpPost.setEntity(new UrlEncodedFormEntity(nvps));
+            CloseableHttpResponse response = httpclient.execute(httpPost);
+        }
 
 
     }
