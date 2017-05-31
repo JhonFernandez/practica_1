@@ -3,7 +3,6 @@ package edu.pucmm.pratica1;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -34,7 +33,6 @@ public class Main {
         Document doc = null;
         boolean urlValida = false;
         String url = "";
-        int totalLineas=0;
         BufferedReader lector = new BufferedReader(new InputStreamReader(System.in));
 
 //        0)Pruebas con el servidor local
@@ -55,7 +53,6 @@ public class Main {
 
             try {
                 doc = Jsoup.connect(url).get();
-                totalLineas=extractContent(url).split("\n").length;
 
                 urlValida = true;
             } catch (Exception e) {
@@ -69,7 +66,7 @@ public class Main {
 //        Document doc = Jsoup.parse(html);
 
 //        A)  Indicar la cantidad de lineas del recurso retornado.
-        System.out.println("Cantidad de lineas: " + totalLineas);
+        System.out.println("Cantidad de lineas: " + extractLineCount(url));
 
 //        B)Indicar la cantidad de párrafos (p) que contiene el documento HTML .
         System.out.println("Cantidad de parrafos: " + doc.select("p").size());
@@ -99,9 +96,9 @@ public class Main {
 //        petición al servidor, con el parámetro llamado asignatura y valor
 //        practica1 y mostrar la respuesta por la salida estandar
 
-        System.out.println("Entro a los forms");
+
+        System.out.println("Peticiones a los form[post]");
         forms = doc.select("form[method=post]");
-        System.out.println("cantidad de forms:" + forms.size());
         for (Element form : forms) {
             CloseableHttpClient httpclient = HttpClients.createDefault();
             String urlPost = url.split("/")[0] + "//" + url.split("/")[2] + form.attr("action");
@@ -116,7 +113,7 @@ public class Main {
         }
     }
 
-    private static String extractContent (String urlString)
+    private static String extractContent(String urlString)
             throws MalformedURLException, IOException {
         URL url = new URL(urlString);
         URLConnection urlConnection = url.openConnection();
@@ -125,9 +122,24 @@ public class Main {
         String content = "";
         String linea = br.readLine();
         while (null != linea) {
-            content += linea+"\n";
+            content += linea + "\n";
             linea = br.readLine();
         }
         return content.trim();
+    }
+
+    private static int extractLineCount(String urlString)
+            throws MalformedURLException, IOException {
+        URL url = new URL(urlString);
+        URLConnection urlConnection = url.openConnection();
+        InputStream is = urlConnection.getInputStream();
+        BufferedReader br = new BufferedReader(new InputStreamReader(is));
+        int count = 0;
+        String linea = br.readLine();
+        while (null != linea) {
+            count++;
+            linea = br.readLine();
+        }
+        return count;
     }
 }
